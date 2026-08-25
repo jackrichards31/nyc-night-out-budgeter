@@ -56,30 +56,47 @@ export type StationAvailability = {
   hasDocks?: boolean;
 };
 
+// Looks at every station within walking radius, not just the single closest
+// one — a real rider walks to the next-closest station if the first is full
+// or empty, so checking only the nearest station understates availability.
 async function nearestStation(
-  point: { lat: number; lng: number }
+  point: { lat: number; lng: number },
+  requires: "bikes" | "docks"
 ): Promise<StationAvailability> {
   const stations = await getStations();
 
-  let closest: { station: Station; distance: number } | null = null;
+  let closestInRadius: { station: Station; distance: number } | null = null;
+  let closestQualifying: { station: Station; distance: number } | null = null;
+
   for (const station of stations) {
     if (!station.is_renting && !station.is_returning) continue;
     const distance = haversineMiles(point, { lat: station.lat, lng: station.lon });
-    if (!closest || distance < closest.distance) {
-      closest = { station, distance };
+    if (distance > CITIBIKE.nearbyRadiusMiles) continue;
+
+    if (!closestInRadius || distance < closestInRadius.distance) {
+      closestInRadius = { station, distance };
+    }
+
+    const qualifies =
+      requires === "bikes"
+        ? station.num_bikes_available > 0
+        : station.num_docks_available > 0;
+    if (qualifies && (!closestQualifying || distance < closestQualifying.distance)) {
+      closestQualifying = { station, distance };
     }
   }
 
-  if (!closest || closest.distance > CITIBIKE.nearbyRadiusMiles) {
+  if (!closestInRadius) {
     return { found: false };
   }
 
+  const chosen = closestQualifying ?? closestInRadius;
   return {
     found: true,
-    stationName: closest.station.name,
-    distanceMiles: closest.distance,
-    hasBikes: closest.station.num_bikes_available > 0,
-    hasDocks: closest.station.num_docks_available > 0,
+    stationName: chosen.station.name,
+    distanceMiles: chosen.distance,
+    hasBikes: chosen.station.num_bikes_available > 0,
+    hasDocks: chosen.station.num_docks_available > 0,
   };
 }
 
@@ -94,8 +111,8 @@ export async function checkCitibikeLeg(
   to: { lat: number; lng: number }
 ): Promise<CitibikeLegAvailability> {
   const [pickup, dropoff] = await Promise.all([
-    nearestStation(from),
-    nearestStation(to),
+    nearestStation(from, "bikes"),
+    nearestStation(to, "docks"),
   ]);
 
   const available = Boolean(

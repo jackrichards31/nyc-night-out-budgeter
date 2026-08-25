@@ -1,7 +1,6 @@
 "use client";
 
 import { SavedPlan } from "@/lib/types";
-import { getNeighborhood } from "@/lib/neighborhoods";
 
 type Props = {
   plans: SavedPlan[];
@@ -11,6 +10,7 @@ type Props = {
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
+  maximumFractionDigits: 0,
 });
 
 export default function SavedPlans({ plans, onDelete }: Props) {
@@ -24,36 +24,30 @@ export default function SavedPlans({ plans, onDelete }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      {plans.map((plan) => {
-        const start = getNeighborhood(plan.inputs.startLocationId);
-        const end = getNeighborhood(plan.inputs.endLocationId);
-        return (
-          <div
-            key={plan.id}
-            className="flex items-center justify-between bg-[var(--card)] border border-[var(--hairline)] rounded-lg px-4 py-3"
-          >
-            <div>
-              <p className="font-medium text-sm">{plan.name}</p>
-              <p className="text-xs text-[var(--muted)]">
-                {start.name} → {end.name}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <p className="font-display text-lg">
-                {currency.format(plan.totalWithCheapestTransit)}
-              </p>
-              <button
-                type="button"
-                onClick={() => onDelete(plan.id)}
-                className="text-xs text-[var(--muted)] hover:text-[var(--accent-deep)]"
-                aria-label={`Delete ${plan.name}`}
-              >
-                Remove
-              </button>
-            </div>
+      {plans.map((plan) => (
+        <div
+          key={plan.id}
+          className="flex items-center justify-between bg-[var(--card)] border border-[var(--hairline)] rounded-lg px-4 py-3"
+        >
+          <div>
+            <p className="font-medium text-sm">{plan.name}</p>
+            <p className="text-xs text-[var(--muted)]">
+              {plan.inputs.startLabel} → {plan.inputs.event.venueName}
+            </p>
           </div>
-        );
-      })}
+          <div className="flex items-center gap-4">
+            <p className="font-display text-lg">{currency.format(plan.total)}</p>
+            <button
+              type="button"
+              onClick={() => onDelete(plan.id)}
+              className="text-xs text-[var(--muted)] hover:text-[var(--accent)]"
+              aria-label={`Delete ${plan.name}`}
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

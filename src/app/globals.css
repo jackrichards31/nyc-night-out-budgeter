@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f7f5f0;
-  --ink: #1e1d1a;
-  --ink-soft: #4a4943;
-  --muted: #6b6a63;
-  --hairline: #e1ded4;
-  --accent: #d4537e;
-  --accent-deep: #993556;
-  --card: #ffffff;
+  --bg: #0b0a0f;
+  --card: #17151f;
+  --ink: #f5f3f7;
+  --ink-soft: #c7c2d0;
+  --muted: #8b8598;
+  --hairline: #2c2837;
+  --accent: #ff3ea5;
+  --accent-deep: #e0198a;
+  --accent-wash: rgba(255, 62, 165, 0.14);
 }
 
 @theme inline {
@@ -23,6 +24,7 @@
 body {
   background: var(--bg);
   color: var(--ink);
+  color-scheme: dark;
 }
 
 .field-label {
@@ -43,6 +45,12 @@ body {
 }
 
 .field-input:focus {
-  outline: 2px solid var(--accent-deep);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* Longhand on purpose: needs to win over .field-input's padding shorthand
+   regardless of Tailwind's injection order, so the $ prefix has room. */
+.field-input-currency {
+  padding-left: 30px;
 }

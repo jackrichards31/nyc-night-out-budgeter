@@ -1,17 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BudgetForm from "@/components/BudgetForm";
-import ResultsBreakdown from "@/components/ResultsBreakdown";
+import PlanBuilder from "@/components/PlanBuilder";
 import SavedPlans from "@/components/SavedPlans";
-import { calculateNightOut } from "@/lib/calculate";
 import { deletePlan, loadPlans, savePlan } from "@/lib/storage";
-import { NightOutInputs, NightOutResult, SavedPlan } from "@/lib/types";
+import { NightOutResult, SavedPlan } from "@/lib/types";
 
 export default function Home() {
-  const [result, setResult] = useState<NightOutResult | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<SavedPlan[]>([]);
 
   useEffect(() => {
@@ -20,21 +15,7 @@ export default function Home() {
     setPlans(loadPlans());
   }, []);
 
-  async function handleCalculate(inputs: NightOutInputs) {
-    setIsCalculating(true);
-    setError(null);
-    try {
-      const next = await calculateNightOut(inputs);
-      setResult(next);
-    } catch {
-      setError("Something went wrong calculating that plan. Try again.");
-    } finally {
-      setIsCalculating(false);
-    }
-  }
-
-  function handleSave(name: string) {
-    if (!result) return;
+  function handleSave(result: NightOutResult, name: string) {
     setPlans(savePlan(name, result));
   }
 
@@ -46,23 +27,21 @@ export default function Home() {
     <div className="flex-1 flex flex-col items-center px-6 py-12 sm:py-16">
       <div className="w-full max-w-xl flex flex-col gap-10">
         <header>
-          <p className="text-xs uppercase tracking-wide text-[var(--accent-deep)] mb-2">
+          <p className="text-xs uppercase tracking-wide text-[var(--accent)] mb-2">
             NYC Night Out Budgeter
           </p>
           <h1 className="font-display text-3xl sm:text-4xl font-medium leading-tight mb-2">
             Know the real cost before you buy the ticket.
           </h1>
           <p className="text-[var(--ink-soft)] text-sm">
-            Ticket, cover, drinks, and transit both ways — subway, rideshare,
-            or Citi Bike using live station availability.
+            Pick a real NYC concert or sports event, set a food & drinks
+            budget, and get transit both ways — subway, rideshare, or Citi
+            Bike — with rideshare demand estimated from when you&apos;ll
+            actually be leaving and coming home.
           </p>
         </header>
 
-        <BudgetForm onCalculate={handleCalculate} isCalculating={isCalculating} />
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        {result && <ResultsBreakdown result={result} onSave={handleSave} />}
+        <PlanBuilder onSave={handleSave} />
 
         <section>
           <p className="field-label mb-3">Saved plans</p>
