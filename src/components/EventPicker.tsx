@@ -106,9 +106,9 @@ export default function EventPicker({ selectedEvent, onSelect }: Props) {
 
       {source === "mock" && (
         <p className="text-xs text-[var(--accent)] mb-2">
-          Showing sample events — add a{" "}
-          {category === "sports" ? "SeatGeek" : "Ticketmaster"} API key for live
-          listings.
+          {category === "sports"
+            ? "Showing sample events — waiting on SeatGeek API key approval."
+            : "Showing sample events — add a Ticketmaster API key for live listings."}
         </p>
       )}
 
